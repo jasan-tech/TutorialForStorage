@@ -14,7 +14,8 @@ namespace TutorialForStorage.Controllers
     {
         private readonly string CONN_STRING = "AzureStorageConnectionString";
         private readonly string CONTAINER_NAME = "quickstart";
-        private readonly string SERVER_PATH = "~/Images/";
+        private readonly string UPLOAD_PATH = "~/Images/";
+        private readonly string DOWNLOAD_PATH = "~/Downloads";
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
 
@@ -88,12 +89,15 @@ namespace TutorialForStorage.Controllers
         }
 
         // Upload a file from server to Blob container
+        [Route("api/blobs/upload")]
         public async Task<bool> UploadFile(string path)
         {
-            using (var fileStream = File.OpenRead(path))
+            var filePathOnServer = Path.Combine(HostingEnvironment.MapPath(UPLOAD_PATH), path);
+
+            using (var fileStream = File.OpenRead(filePathOnServer))
             {
                 var filename = Path.GetFileName(path); // Trim fully pathed filename to just the filename
-                if (File.Exists(path))
+                if (File.Exists(filePathOnServer))
                 {
                     var blockBlob = _container.GetBlockBlobReference(filename);
                     Trace.WriteLine("Uploading {0}.", filename);
@@ -111,11 +115,15 @@ namespace TutorialForStorage.Controllers
         }
 
         // Download a blob to ~/Downloads/ on server
+        [HttpGet]
+        [Route("api/blobs/download")]
         public async Task<bool> DownloadFile(string blobName)
         {
             var blockBlob = _container.GetBlockBlobReference(blobName);
 
-            using (var fileStream = File.OpenWrite(Path.Combine("downloads", blockBlob.Name)))
+            var downloadsPathOnServer = Path.Combine(HostingEnvironment.MapPath(DOWNLOAD_PATH), blockBlob.Name);
+
+            using (var fileStream = File.OpenWrite(downloadsPathOnServer))
             {
                 Trace.WriteLine("Downloading file {0}.", blockBlob.Name);
                 await blockBlob.DownloadToStreamAsync(fileStream);
@@ -125,6 +133,7 @@ namespace TutorialForStorage.Controllers
             }
         }
 
+        // Delete a blob by name.
         public async Task Delete(string blobName)
         {
             var blob = _container.GetBlobReference(blobName);
@@ -134,7 +143,7 @@ namespace TutorialForStorage.Controllers
         // Initialize blob container with all files in subfolder ~/Images/
         public async Task InitializeContainerWithSampleData()
         {
-            var folderPath = HostingEnvironment.MapPath(SERVER_PATH);
+            var folderPath = HostingEnvironment.MapPath(UPLOAD_PATH);
             var folder = Directory.GetFiles(folderPath);
 
             foreach (var file in folder)
