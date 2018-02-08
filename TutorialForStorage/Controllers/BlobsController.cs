@@ -18,7 +18,7 @@ namespace TutorialForStorage.Controllers
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
 
-        //Initialize this controller with storage account and blob container
+        // Initialize this controller with storage account and blob container
         public BlobsController()
         {
             var connString = CloudConfigurationManager.GetSetting(CONN_STRING);
@@ -43,17 +43,19 @@ namespace TutorialForStorage.Controllers
         public async Task<IEnumerable<string>> Get()
         {
             var blobsInfoList = new List<string>();
-            var blobs = _container.ListBlobs(); //use ListBlobsSegmentedAsync for containers with large numbers of files
+            var blobs = _container.ListBlobs(); // Use ListBlobsSegmentedAsync for containers with large numbers of files
             var blobsList = new List<IListBlobItem>(blobs);
 
             if (blobsList.Count == 0)
             {
                 Trace.WriteLine("No blobs found in blob container.  Uploading sample files.");
                 await InitializeContainerWithSampleData();
+
+                // Refresh enumeration after initializing
+                blobs = _container.ListBlobs();
+                blobsList.AddRange(blobs);
             }
 
-            blobs = _container.ListBlobs(); //refresh enumeration after initializing
-            blobsList = new List<IListBlobItem>(blobs);
             Trace.WriteLine("{0} blobs found in container.", blobsList.Count.ToString());
 
             foreach (var item in blobs)
@@ -61,7 +63,10 @@ namespace TutorialForStorage.Controllers
                 if (item is CloudBlockBlob cbb)
                 {
                     var blob = (CloudBlockBlob)item;
-                    var blobInfoString = string.Format("Block blob with name '{0}', content type '{1}', size '{2}', and URI '{3}'", blob.Name, blob.Properties.ContentType, blob.Properties.Length, blob.Uri);
+                    var blobInfoString = $"Block blob with name '{blob.Name}', " +
+                        $"content type '{blob.Properties.ContentType}', " +
+                        $"size '{blob.Properties.Length}', " +
+                        $"and URI '{blob.Uri}'";
 
                     blobsInfoList.Add(blobInfoString);
                     Trace.WriteLine(blobInfoString);
@@ -74,9 +79,9 @@ namespace TutorialForStorage.Controllers
         // Upload a file from server to Blob container
         public async Task<bool> UploadFile(string path)
         {
-            using (var fileStream = File.OpenRead(@path))
+            using (var fileStream = File.OpenRead(path))
             {
-                var filename = Path.GetFileName(path); //trim fully pathed filename to just the filename
+                var filename = Path.GetFileName(path); // Trim fully pathed filename to just the filename
                 if (File.Exists(path))
                 {
                     CloudBlockBlob blockBlob = _container.GetBlockBlobReference(filename);
@@ -94,12 +99,12 @@ namespace TutorialForStorage.Controllers
             }
         }
 
-        //Download a blob to ~/Downloads/ on server
+        // Download a blob to ~/Downloads/ on server
         public async Task<bool> DownloadFile(string blobName)
         {
             CloudBlockBlob blockBlob = _container.GetBlockBlobReference(blobName);
 
-            using (var fileStream = File.OpenWrite(@"downloads\" + blockBlob.Name))
+            using (var fileStream = File.OpenWrite(Path.Combine("downloads", blockBlob.Name)))
             {
                 Trace.WriteLine("Downloading file {0}.", blockBlob.Name);
                 await blockBlob.DownloadToStreamAsync(fileStream);
@@ -114,7 +119,11 @@ namespace TutorialForStorage.Controllers
         {
             // Retrieve reference to a blob by filename, e.g. "photo1.jpg".
             var blob = _container.GetBlockBlobReference(name);
-            return string.Format("Block blob with name '{0}', content type '{1}', size '{2}', and URI '{3}'", blob.Name, blob.Properties.ContentType, blob.Properties.Length, blob.Uri);
+            var blobInfoString = $"Block blob with name '{blob.Name}', " +
+                        $"content type '{blob.Properties.ContentType}', " +
+                        $"size '{blob.Properties.Length}', " +
+                        $"and URI '{blob.Uri}'";
+            return blobInfoString;
         }
 
         // Initialize blob container with all files in subfolder ~/Images/
