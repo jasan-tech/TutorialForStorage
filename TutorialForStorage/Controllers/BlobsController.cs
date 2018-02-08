@@ -2,10 +2,11 @@
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.Azure;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Diagnostics;
+using System.IO;
+using System.Web.Hosting;
 
 namespace TutorialForStorage.Controllers
 {
@@ -22,9 +23,11 @@ namespace TutorialForStorage.Controllers
         {
             var connString = CloudConfigurationManager.GetSetting(CONN_STRING);
             var account = CloudStorageAccount.Parse(connString);
+
             _client = account.CreateCloudBlobClient();
             _container = _client.GetContainerReference(CONTAINER_NAME);
-            if (_container.CreateIfNotExists(BlobContainerPublicAccessType.Container) == true)
+
+            if (_container.CreateIfNotExists(BlobContainerPublicAccessType.Container))
             {
                 Trace.WriteLine("Creating container {0}.", CONTAINER_NAME);
             }
@@ -46,7 +49,7 @@ namespace TutorialForStorage.Controllers
             if (blobsList.Count == 0)
             {
                 Trace.WriteLine("No blobs found in blob container.  Uploading sample files.");
-                await this.InitializeContainerWithSampleData();
+                await InitializeContainerWithSampleData();
             }
 
             blobs = _container.ListBlobs(); //refresh enumeration after initializing
@@ -71,10 +74,10 @@ namespace TutorialForStorage.Controllers
         // Upload a file from server to Blob container
         public async Task<bool> UploadFile(string path)
         {
-            using (var fileStream = System.IO.File.OpenRead(@path))
+            using (var fileStream = File.OpenRead(@path))
             {
-                var filename = System.IO.Path.GetFileName(path); //trim fully pathed filename to just the filename
-                if (System.IO.File.Exists(path))
+                var filename = Path.GetFileName(path); //trim fully pathed filename to just the filename
+                if (File.Exists(path))
                 {
                     CloudBlockBlob blockBlob = _container.GetBlockBlobReference(filename);
                     Trace.WriteLine("Uploading {0}.", filename);
@@ -82,12 +85,11 @@ namespace TutorialForStorage.Controllers
                     await blockBlob.UploadFromStreamAsync(fileStream);
 
                     return await Task.FromResult(true);
-
                 }
                 else
                 {
                     Trace.TraceError("File {0} not found.", path);
-                    throw new System.IO.FileNotFoundException();
+                    throw new FileNotFoundException();
                 }
             }
         }
@@ -97,7 +99,7 @@ namespace TutorialForStorage.Controllers
         {
             CloudBlockBlob blockBlob = _container.GetBlockBlobReference(blobName);
 
-            using (var fileStream = System.IO.File.OpenWrite(@"downloads\" + blockBlob.Name))
+            using (var fileStream = File.OpenWrite(@"downloads\" + blockBlob.Name))
             {
                 Trace.WriteLine("Downloading file {0}.", blockBlob.Name);
                 await blockBlob.DownloadToStreamAsync(fileStream);
@@ -118,12 +120,12 @@ namespace TutorialForStorage.Controllers
         // Initialize blob container with all files in subfolder ~/Images/
         public async Task InitializeContainerWithSampleData()
         {
-            var folderPath = System.Web.Hosting.HostingEnvironment.MapPath(this.SERVER_PATH);
-            var folder = System.IO.Directory.GetFiles(folderPath);
+            var folderPath = HostingEnvironment.MapPath(SERVER_PATH);
+            var folder = Directory.GetFiles(folderPath);
 
             foreach (var file in folder)
             {
-                await this.UploadFile(file);
+                await UploadFile(file);
             }
         }
     }
