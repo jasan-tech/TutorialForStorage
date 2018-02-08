@@ -60,9 +60,8 @@ namespace TutorialForStorage.Controllers
 
             foreach (var item in blobs)
             {
-                if (item is CloudBlockBlob cbb)
+                if (item is CloudBlockBlob blob)
                 {
-                    var blob = (CloudBlockBlob)item;
                     var blobInfoString = $"Block blob with name '{blob.Name}', " +
                         $"content type '{blob.Properties.ContentType}', " +
                         $"size '{blob.Properties.Length}', " +
@@ -76,6 +75,18 @@ namespace TutorialForStorage.Controllers
             return blobsInfoList;
         }
 
+        // Display properties from a single blob
+        public string Get(string name)
+        {
+            // Retrieve reference to a blob by filename, e.g. "photo1.jpg".
+            var blob = _container.GetBlockBlobReference(name);
+            var blobInfoString = $"Block blob with name '{blob.Name}', " +
+                        $"content type '{blob.Properties.ContentType}', " +
+                        $"size '{blob.Properties.Length}', " +
+                        $"and URI '{blob.Uri}'";
+            return blobInfoString;
+        }
+
         // Upload a file from server to Blob container
         public async Task<bool> UploadFile(string path)
         {
@@ -84,7 +95,7 @@ namespace TutorialForStorage.Controllers
                 var filename = Path.GetFileName(path); // Trim fully pathed filename to just the filename
                 if (File.Exists(path))
                 {
-                    CloudBlockBlob blockBlob = _container.GetBlockBlobReference(filename);
+                    var blockBlob = _container.GetBlockBlobReference(filename);
                     Trace.WriteLine("Uploading {0}.", filename);
 
                     await blockBlob.UploadFromStreamAsync(fileStream);
@@ -102,7 +113,7 @@ namespace TutorialForStorage.Controllers
         // Download a blob to ~/Downloads/ on server
         public async Task<bool> DownloadFile(string blobName)
         {
-            CloudBlockBlob blockBlob = _container.GetBlockBlobReference(blobName);
+            var blockBlob = _container.GetBlockBlobReference(blobName);
 
             using (var fileStream = File.OpenWrite(Path.Combine("downloads", blockBlob.Name)))
             {
@@ -114,16 +125,10 @@ namespace TutorialForStorage.Controllers
             }
         }
 
-        // Display properties from a single blob
-        public string Get(string name)
+        public async Task Delete(string blobName)
         {
-            // Retrieve reference to a blob by filename, e.g. "photo1.jpg".
-            var blob = _container.GetBlockBlobReference(name);
-            var blobInfoString = $"Block blob with name '{blob.Name}', " +
-                        $"content type '{blob.Properties.ContentType}', " +
-                        $"size '{blob.Properties.Length}', " +
-                        $"and URI '{blob.Uri}'";
-            return blobInfoString;
+            var blob = _container.GetBlobReference(blobName);
+            await blob.DeleteIfExistsAsync();
         }
 
         // Initialize blob container with all files in subfolder ~/Images/
