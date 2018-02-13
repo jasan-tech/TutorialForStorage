@@ -102,7 +102,7 @@ namespace TutorialForStorage.Controllers
                 if (File.Exists(filePathOnServer))
                 {
                     var blockBlob = _container.GetBlockBlobReference(filename);
-                    Trace.WriteLine($"QuickStart: Uploading '{filename}' from '{UPLOAD_PATH}' to '{CONTAINER_NAME}'.");
+                    Trace.WriteLine($"QuickStart: Uploading '{filename}' from '{path}' to '{CONTAINER_NAME}'.");
 
                     await blockBlob.UploadFromStreamAsync(fileStream);
                     Trace.WriteLine($"QuickStart: Upload of file '{filename}' complete.");
