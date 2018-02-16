@@ -1,9 +1,0 @@
-﻿@using (Html.BeginForm("BrowserUploadMultipleFiles", "BrowserUpload", FormMethod.Post, new { enctype = "multipart/form-data" }))
-{
-    <div id="multiple">
-        <h3>Choose files to upload:</h3>
-        <input type="file" class="multiple" name="files" multiple />
-    </div>
-
-    <button class="btn btn-default">Upload</button>
-}

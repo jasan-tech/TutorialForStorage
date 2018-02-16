@@ -1,19 +1,19 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.Azure;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Diagnostics;
 using System.IO;
 using System.Web.Hosting;
+using System.Configuration;
 
 namespace TutorialForStorage.Controllers
 {
     public class BlobsController : ApiController
     {
         private readonly string CONN_STRING = "AzureStorageConnectionString";
-        private readonly string CONTAINER_NAME = "quickstart";
+        private readonly string CONTAINER_NAME = "Blobs Tutorial";
         private readonly string UPLOAD_PATH = "~/Images/";
         private readonly string DOWNLOAD_PATH = "~/Downloads";
         private readonly CloudBlobClient _client;
@@ -22,7 +22,7 @@ namespace TutorialForStorage.Controllers
         // Initialize this controller with storage account and blob container
         public BlobsController()
         {
-            var connString = CloudConfigurationManager.GetSetting(CONN_STRING);
+            var connString = ConfigurationManager.AppSettings[CONN_STRING];
             var account = CloudStorageAccount.Parse(connString);
 
             _client = account.CreateCloudBlobClient();
@@ -30,11 +30,11 @@ namespace TutorialForStorage.Controllers
 
             if (_container.CreateIfNotExists(BlobContainerPublicAccessType.Container)) //requires Azure Storage Emulator 5.2 or higher: https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator#get-the-storage-emulator 
             {
-                Trace.WriteLine($"QuickStart: Creating Azure storage blob container '{CONTAINER_NAME}'.");
+                Trace.WriteLine($"Blobs Tutorial: Creating Azure storage blob container '{CONTAINER_NAME}'.");
             }
             else
             {
-                Trace.WriteLine($"QuickStart: Using container '{CONTAINER_NAME}'.");
+                Trace.WriteLine($"Blobs Tutorial: Using container '{CONTAINER_NAME}'.");
             }
         }
 
@@ -49,7 +49,7 @@ namespace TutorialForStorage.Controllers
 
             if (blobsList.Count == 0)
             {
-                Trace.WriteLine($"QuickStart: No blobs found in blob container.  Uploading sample files from '{UPLOAD_PATH}'");
+                Trace.WriteLine($"Blobs Tutorial: No blobs found in blob container.  Uploading sample files from '{UPLOAD_PATH}'");
                 await InitializeContainerWithSampleData();
 
                 // Refresh enumeration after initializing
@@ -57,7 +57,7 @@ namespace TutorialForStorage.Controllers
                 blobsList.AddRange(blobs);
             }
 
-            Trace.WriteLine($"QuickStart: {blobsList.Count.ToString()} blobs found in container.");
+            Trace.WriteLine($"Blobs Tutorial: {blobsList.Count.ToString()} blobs found in container.");
 
             foreach (var item in blobs)
             {
@@ -70,7 +70,7 @@ namespace TutorialForStorage.Controllers
                         $"and URI '{blob.Uri}'";
 
                     blobsInfoList.Add(blobInfoString);
-                    Trace.WriteLine($"QuickStart: {blobInfoString}");
+                    Trace.WriteLine($"Blobs Tutorial: {blobInfoString}");
                 }
             }
 
@@ -86,7 +86,7 @@ namespace TutorialForStorage.Controllers
                         $"content type '{blob.Properties.ContentType}', " +
                         $"size '{blob.Properties.Length}', " +
                         $"and URI '{blob.Uri}'";
-            Trace.WriteLine($"QuickStart: {blobInfoString}");
+            Trace.WriteLine($"Blobs Tutorial: {blobInfoString}");
             return blobInfoString;
         }
 
@@ -102,16 +102,16 @@ namespace TutorialForStorage.Controllers
                 if (File.Exists(filePathOnServer))
                 {
                     var blockBlob = _container.GetBlockBlobReference(filename);
-                    Trace.WriteLine($"QuickStart: Uploading '{filename}' from '{path}' to '{CONTAINER_NAME}'.");
+                    Trace.WriteLine($"Blobs Tutorial: Uploading '{filename}' from '{path}' to '{CONTAINER_NAME}'.");
 
                     await blockBlob.UploadFromStreamAsync(fileStream);
-                    Trace.WriteLine($"QuickStart: Upload of file '{filename}' complete.");
+                    Trace.WriteLine($"Blobs Tutorial: Upload of file '{filename}' complete.");
 
                     return await Task.FromResult(true);
                 }
                 else
                 {
-                    Trace.TraceError($"QuickStart: File '{path}' not found.");
+                    Trace.TraceError($"Blobs Tutorial: File '{path}' not found.");
                     throw new FileNotFoundException();
                 }
             }
@@ -128,10 +128,10 @@ namespace TutorialForStorage.Controllers
 
             using (var fileStream = File.OpenWrite(downloadsPathOnServer))
             {
-                Trace.WriteLine($"QuickStart: Downloading file '{blockBlob.Name}' to '{DOWNLOAD_PATH}'.");
+                Trace.WriteLine($"Blobs Tutorial: Downloading file '{blockBlob.Name}' to '{DOWNLOAD_PATH}'.");
                 await blockBlob.DownloadToStreamAsync(fileStream);
 
-                Trace.WriteLine($"QuickStart: Download of file '{blockBlob.Name}' complete.");
+                Trace.WriteLine($"Blobs Tutorial: Download of file '{blockBlob.Name}' complete.");
                 return await Task.FromResult(true);
             }
         }
@@ -141,7 +141,7 @@ namespace TutorialForStorage.Controllers
         {
             var blockBlob = _container.GetBlobReference(blobName);
             await blockBlob.DeleteIfExistsAsync();
-            Trace.WriteLine($"QuickStart: Delete of file '{blockBlob.Name}' complete.");
+            Trace.WriteLine($"Blobs Tutorial: Delete of file '{blockBlob.Name}' complete.");
         }
 
         // Initialize blob container with all files in subfolder ~/Images/
