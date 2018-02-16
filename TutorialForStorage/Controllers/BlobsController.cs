@@ -7,13 +7,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Web.Hosting;
 using System.Configuration;
+using Microsoft.Azure;
 
 namespace TutorialForStorage.Controllers
 {
     public class BlobsController : ApiController
     {
         private readonly string CONN_STRING = "AzureStorageConnectionString";
-        private readonly string CONTAINER_NAME = "Blobs Tutorial";
+        private readonly string CONTAINER_NAME = "blobstutorial";
         private readonly string UPLOAD_PATH = "~/Images/";
         private readonly string DOWNLOAD_PATH = "~/Downloads";
         private readonly CloudBlobClient _client;
@@ -22,7 +23,8 @@ namespace TutorialForStorage.Controllers
         // Initialize this controller with storage account and blob container
         public BlobsController()
         {
-            var connString = ConfigurationManager.AppSettings[CONN_STRING];
+            //var connString = ConfigurationManager.AppSettings[CONN_STRING];
+            var connString = CloudConfigurationManager.GetSetting(CONN_STRING);
             var account = CloudStorageAccount.Parse(connString);
 
             _client = account.CreateCloudBlobClient();
