@@ -92,7 +92,7 @@ namespace TutorialForStorage.Controllers
 
         // Upload a file from server to Blob container
         [Route("api/blobs/upload")]
-        public async Task<bool> UploadFile(string path)
+        public async Task<bool> Upload(string path)
         {
             var filePathOnServer = Path.Combine(HostingEnvironment.MapPath(UPLOAD_PATH), path);
 
@@ -120,7 +120,7 @@ namespace TutorialForStorage.Controllers
         // Download a blob to ~/Downloads/ on server
         [HttpGet]
         [Route("api/blobs/download")]
-        public async Task<bool> DownloadFile(string blobName)
+        public async Task<bool> Download(string blobName)
         {
             var blockBlob = _container.GetBlockBlobReference(blobName);
 
@@ -152,7 +152,7 @@ namespace TutorialForStorage.Controllers
 
             foreach (var file in folder)
             {
-                await UploadFile(file);
+                await Upload(file);
             }
         }
     }

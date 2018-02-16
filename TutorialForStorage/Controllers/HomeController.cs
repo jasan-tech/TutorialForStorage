@@ -31,7 +31,7 @@ namespace TutorialForStorage.Controllers
 
             file.SaveAs(filePath);
             
-            await new BlobsController().UploadFile(filePath);
+            await new BlobsController().Upload(filePath);
 
             System.IO.File.Delete(filePath);
 
