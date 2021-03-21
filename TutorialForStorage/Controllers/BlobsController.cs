@@ -6,15 +6,14 @@ using System.Web.Http;
 using System.Diagnostics;
 using System.IO;
 using System.Web.Hosting;
-using System.Configuration;
 using Microsoft.Azure;
 
 namespace TutorialForStorage.Controllers
 {
     public class BlobsController : ApiController
     {
-        private readonly string CONN_STRING = "AzureStorageConnectionString";
-        private readonly string CONTAINER_NAME = "blobstutorial";
+        private readonly string CONN_STRING = "DefaultEndpointsProtocol=https;AccountName=csb10032000bae4e60c;AccountKey=okf2M/Znp+4vIXsSO8NDFBXMEfafRDqkzu7hLzvvSHNd0iCdcRMnTloJtIJcwn9LDFGLBlUlFdLQdOCDOWmjXQ==;EndpointSuffix=core.windows.net";
+        private readonly string CONTAINER_NAME = "csb10032000bae4e60c";
         private readonly string UPLOAD_PATH = "~/Images/";
         private readonly string DOWNLOAD_PATH = "~/Downloads";
         private readonly CloudBlobClient _client;
